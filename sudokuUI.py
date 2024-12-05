@@ -64,3 +64,4 @@ def handle_input(event, board):
 
 #if button = hard:
     #generate 50 cells
+
