@@ -49,6 +49,7 @@ class Board:
         self.board_data = board_data
         self.cells = [[Cell(value, r, c, screen) for c, value in enumerate(row)] for r, row in enumerate(board_data)]
         self.selected_cell = None
+        self.board = board
 
     def draw(self):
         for i in range(10):
@@ -182,7 +183,13 @@ class Board:
 
     def clear_selected_cell_sketch(self):
         if self.selected_cell:
-            self.selected_cell.set_sketched_value(0)
+            self.selected_cell.sketched_value = 0
+            self.draw()
+
+    def clear_selected_cell_value(self):
+        if self.selected_cell:
+            self.selected_cell.value = 0
+            self.selected_cell.sketched_value = 0
 
     def is_full(self):
         return all(cell.value != 0 for row in self.cells for cell in row)
