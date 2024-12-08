@@ -3,6 +3,7 @@ from sudoku_generator import SudokuGenerator
 from cell import Board
 import sys
 
+
 def main():
     pygame.init()
 
@@ -174,9 +175,14 @@ def main():
                         if board.selected_cell:
                             board.place_number(board.selected_cell.sketched_value)
 
+
+
                     elif event.key == pygame.K_BACKSPACE:
                         if board.selected_cell:
-                            board.clear_sketched_values()
+                           if board.selected_cell.value != 0:
+                             board.clear_selected_cell_value()
+                           else:
+                             board.clear_selected_cell_sketch()
 
                     if board.is_full() and board.check_board():
                         game_state = "WIN"
@@ -187,6 +193,7 @@ def main():
         clock.tick(60)
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()
