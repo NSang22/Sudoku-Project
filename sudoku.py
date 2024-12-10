@@ -1,5 +1,7 @@
 import pygame
-
+from sudoku_generator import SudokuGenerator
+from cell import Board
+import sys
 
 def main():
     pygame.init()
@@ -49,11 +51,9 @@ def main():
         medium_button = pygame.Rect(170, 320, 200, 50)
         hard_button = pygame.Rect(170, 390, 200, 50)
 
-
         pygame.draw.rect(screen, (0, 255, 0), easy_button)
         pygame.draw.rect(screen, (0, 255, 0), medium_button)
         pygame.draw.rect(screen, (0, 255, 0), hard_button)
-
 
         easy_text = difficulty_font.render("Easy", True, (255, 255, 255))
         medium_text = difficulty_font.render("Medium", True, (255, 255, 255))
@@ -63,20 +63,19 @@ def main():
         screen.blit(medium_text, (230, 335))
         screen.blit(hard_text, (230, 405))
 
-
         pygame.display.flip()
 
     # Function to display the game over screen
     def show_game_over():
         screen.fill((255, 255, 255))
-        game_over_text = font.render("Game Over", True, (255, 0, 0))
+        game_over_text = option_font.render("Game Over", True, (255, 0, 0))
         screen.blit(game_over_text, (220, 200))
         pygame.display.flip()
 
     # Function to display the win screen
     def show_win():
         screen.fill((255, 255, 255))
-        win_text = font.render("You Win!", True, (0, 255, 0))
+        win_text = option_font.render("You Win!", True, (0, 255, 0))
         screen.blit(win_text, (220, 200))
         pygame.display.flip()
 
@@ -94,9 +93,9 @@ def main():
         pygame.draw.rect(screen, (255, 255, 0), restart_button)
         pygame.draw.rect(screen, (255, 0, 0), exit_button)
 
-        reset_text = font.render("Reset", True, (255, 255, 255))
-        restart_text = font.render("Restart", True, (255, 255, 255))
-        exit_text = font.render("Exit", True, (255, 255, 255))
+        reset_text = option_font.render("Reset", True, (255, 255, 255))
+        restart_text = option_font.render("Restart", True, (255, 255, 255))
+        exit_text = option_font.render("Exit", True, (255, 255, 255))
 
         screen.blit(reset_text, (60, 475))
         screen.blit(restart_text, (215, 475))
@@ -125,7 +124,6 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if game_state == "START":
-                    # Start button clicked
                     start_button = pygame.Rect(170, 250, 200, 50)
                     quit_button = pygame.Rect(170, 320, 200, 50)
                     if start_button.collidepoint(event.pos):
@@ -134,11 +132,9 @@ def main():
                         running = False
 
                 elif game_state == "DIFFICULTY":
-                    # Difficulty selection
                     easy_button = pygame.Rect(170, 250, 200, 50)
                     medium_button = pygame.Rect(170, 320, 200, 50)
                     hard_button = pygame.Rect(170, 390, 200, 50)
-                    quit_button = pygame.Rect(420, 463, 130, 50)
 
                     if easy_button.collidepoint(event.pos):
                         game_state = "IN_PROGRESS"
@@ -149,14 +145,12 @@ def main():
                     elif hard_button.collidepoint(event.pos):
                         game_state = "IN_PROGRESS"
                         difficulty = 50  # Hard
-                    elif quit_button.collidepoint(event.pos):
-                        running = False
 
-                    # Generate the Sudoku board
-                    
+                    # Generate Sudoku board after difficulty selection
+                    sudoku_generator = SudokuGenerator(9, difficulty)
+                    board = Board(540, 540, screen, sudoku_generator.get_board())
 
                 elif game_state == "IN_PROGRESS":
-                    # Handle button clicks in game
                     reset_button = pygame.Rect(50, 460, 100, 50)
                     restart_button = pygame.Rect(200, 460, 100, 50)
                     exit_button = pygame.Rect(350, 460, 100, 50)
@@ -168,21 +162,23 @@ def main():
                     elif exit_button.collidepoint(event.pos):
                         running = False
                     else:
-                        # Handle cell selection
-                        row, col = board.click(event.pos)
+                        x, y = event.pos
+                        row, col = board.click(x, y)
                         if row is not None and col is not None:
                             board.select(row, col)
 
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if game_state == "IN_PROGRESS":
                     if pygame.K_1 <= event.key <= pygame.K_9:
-                        board.sketch(event.key - pygame.K_1 + 1)
+                        if board.selected_cell:
+                            board.sketch(event.key - pygame.K_1 + 1)
                     elif event.key == pygame.K_RETURN:
-                        board.place_number(board.selected_cell_value)
-                    elif event.key == pygame.K_BACKSPACE or event.key == pygame.K_DELETE:
-                        board.clear()
+                        if board.selected_cell:
+                            board.place_number(board.selected_cell.sketched_value)
+                    elif event.key in (pygame.K_BACKSPACE, pygame.K_DELETE):
+                        if board.selected_cell:
+                            board.clear()
 
-                    # Check for game win or over
                     if board.is_full() and board.check_board():
                         game_state = "WIN"
                     elif board.is_full():
@@ -191,7 +187,6 @@ def main():
         pygame.display.update()
 
     pygame.quit()
-
 
 if __name__ == "__main__":
     main()
